@@ -621,7 +621,7 @@ class MetricsCollector(object):
         for dag in get_sla_miss_dags():
             try:
                 cron = croniter.croniter(dag.schedule_interval)
-            except croniter.croniter.CroniterBadCronError:
+            except croniter.CroniterBadCronError:
                 continue
             expected_last_run = cron.get_prev(datetime)
             diff_from_expected = (
@@ -652,7 +652,7 @@ class MetricsCollector(object):
         for tasks in get_sla_miss_tasks():
             try:
                 cron = croniter.croniter(tasks.schedule_interval)
-            except croniter.croniter.CroniterBadCronError:
+            except croniter.CroniterBadCronError:
                 continue
             expected_last_run = cron.get_prev(datetime)
             diff_from_expected = (
