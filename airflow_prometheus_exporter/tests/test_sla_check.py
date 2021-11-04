@@ -2,7 +2,7 @@ import datetime
 import pytest
 from dateutil import tz
 
-from ..metrics import sla_check
+from ..common.metrics import sla_check
 
 
 def hours_from_now(hours):

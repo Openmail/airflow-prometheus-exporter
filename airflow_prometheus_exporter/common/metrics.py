@@ -1,11 +1,12 @@
 import datetime
 import json
+import logging
 import os
 import pickle
 
 from dateutil import tz
 from pytimeparse import parse as pytime_parse
-from sqlalchemy import Column, String, Text, Boolean, and_, func
+from sqlalchemy import and_, func, not_
 from sqlalchemy.sql.expression import null
 
 from airflow.configuration import conf
@@ -18,6 +19,8 @@ RETENTION_TIME = os.environ.get("PROMETHEUS_METRICS_DAYS", 21)
 TIMEZONE = conf.get("core", "default_timezone")
 TIMEZONE_LA = "America/Los_Angeles"
 MISSING = "n/a"
+
+logger = logging.getLogger(__name__)
 
 
 def sla_check(sla_interval, sla_time, max_execution_date, latest_sla_miss_state):
@@ -387,7 +390,6 @@ def upsert_auxiliary_info(delay_alert_auxiliary_info, upsert_dict, session=None)
                     delay_alert_auxiliary_info.latest_sla_miss_state: latest_sla_miss_state,
                 }
             )
-    session.flush()
     session.commit()
 
 
@@ -409,9 +411,9 @@ def get_sla_miss(
         )
         .join(dag_model, delay_alert_metadata.dag_id == dag_model.dag_id)
         .filter(
-            delay_alert_metadata.ready == True,
-            dag_model.is_active == True,
-            dag_model.is_paused == False,
+            delay_alert_metadata.enabled,
+            dag_model.is_active,
+            not_(dag_model.is_paused),
         )
         .group_by(
             delay_alert_metadata.dag_id,
@@ -564,7 +566,7 @@ def get_sla_miss(
                 "sla_time": alert.sla_time or MISSING,
             }
 
-    upsert_auxiliary_info(delay_alert_auxiliary_info, upsert_dict)
+    upsert_auxiliary_info(delay_alert_auxiliary_info, upsert_dict, session=session)
 
 
 @provide_session

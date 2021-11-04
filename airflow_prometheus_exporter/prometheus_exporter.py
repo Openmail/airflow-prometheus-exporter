@@ -1,21 +1,17 @@
 """Prometheus exporter for Airflow."""
 import time
 
-from contextlib import contextmanager
 from flask import Response
 from flask_appbuilder import BaseView, expose
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.core import GaugeMetricFamily
-from sqlalchemy import Column, String, Text, Boolean, and_, func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy_utcdatetime import UTCDateTime
 
 from airflow.plugins_manager import AirflowPlugin
 from airflow.models import DagModel, DagRun, TaskFail, TaskInstance, XCom
-from airflow.settings import Session
 from airflow_prometheus_exporter.xcom_config import load_xcom_config
 
-from .metrics import (
+from .common.models import DelayAlertMetadata, DelayAlertAuxiliaryInfo
+from .common.metrics import (
     get_dag_state_info,
     get_dag_duration_info,
     get_task_state_info,
@@ -30,48 +26,6 @@ from .metrics import (
     get_unmonitored_dag,
     MISSING
 )
-
-
-@contextmanager
-def session_scope(session):
-    """Provide a transactional scope around a series of operations."""
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-with session_scope(Session) as session:
-    Base = declarative_base(session.get_bind())
-
-    class DelayAlertMetadata(Base):
-        __tablename__ = "delay_alert_metadata"
-        __table_args__ = {"schema": "ddns"}
-        dag_id = Column(String(250), primary_key=True)
-        task_id = Column(String(250), primary_key=True, nullable=True)
-        sla_interval = Column(String(64), primary_key=True)
-        sla_time = Column(String(5), primary_key=True, nullable=True)
-        affected_pipeline = Column(Text, nullable=True)
-        alert_name = Column(String(250), nullable=True)
-        alert_target = Column(String(250), nullable=True)
-        group_title = Column(Text, nullable=True)
-        inhibit_rule = Column(Text, nullable=True)
-        link = Column(Text, nullable=True)
-        note = Column(Text, nullable=True)
-        ready = Column(Boolean, nullable=True)
-
-
-    class DelayAlertAuxiliaryInfo(Base):
-        __tablename__ = "delay_alert_auxiliary_info"
-        __table_args__ = {"schema": "ddns"}
-        dag_id = Column(String(250), primary_key=True)
-        task_id = Column(String(250), primary_key=True, nullable=True)
-        sla_interval = Column(String(64), primary_key=True)
-        sla_time = Column(String(5), primary_key=True, nullable=True)
-        latest_successful_run = Column(UTCDateTime)
-        latest_sla_miss_state = Column(Boolean)
-
-
 
 
 class MetricsCollector(object):
