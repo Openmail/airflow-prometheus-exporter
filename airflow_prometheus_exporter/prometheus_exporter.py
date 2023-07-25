@@ -4,7 +4,7 @@ import datetime
 import time
 
 from contextlib import contextmanager
-from flask import Response
+from flask import Response, request
 from flask_appbuilder import BaseView, expose
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.core import GaugeMetricFamily
@@ -57,7 +57,7 @@ class MetricsCollector(object):
             t_state.add_metric(
                 [
                     task.dag_id,
-                    "host",
+                    request.endpoint,
                     task.task_id,
                     task.owners,
                     task.state or MISSING,
