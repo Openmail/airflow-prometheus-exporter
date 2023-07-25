@@ -47,7 +47,11 @@ class MetricsCollector(object):
             "Shows the number of task instances with particular status",
             labels=[
                 "dag_id",
-                "host",
+                "host-1",
+                "host-2",
+                "host-3",
+                "host-4",
+                "host-5",
                 "task_id",
                 "owner",
                 "status",
@@ -57,7 +61,11 @@ class MetricsCollector(object):
             t_state.add_metric(
                 [
                     task.dag_id,
-                    request.endpoint,
+                    request.path,
+                    str(request.url_rule),
+                    request.url,
+                    request.base_url,
+                    request.url_root,
                     task.task_id,
                     task.owners,
                     task.state or MISSING,
