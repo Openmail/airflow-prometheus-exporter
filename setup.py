@@ -3,7 +3,6 @@
 
 """The setup script."""
 import pathlib
-import pkg_resources
 from setuptools import find_packages, setup
 
 with open("README.md", encoding="utf-8") as readme_file:
@@ -11,8 +10,9 @@ with open("README.md", encoding="utf-8") as readme_file:
 
 with pathlib.Path("requirements.txt").open() as requirements_txt:
     install_requires = [
-        str(requirement)
-        for requirement in pkg_resources.parse_requirements(requirements_txt)
+        line.strip()
+        for line in requirements_txt
+        if line.strip() and not line.startswith("#")
     ]
 extras_require = {"dev": ["bumpversion", "tox", "twine"]}  # noqa
 
@@ -38,7 +38,7 @@ setup(
     packages=find_packages(include=["airflow_prometheus_exporter"]),
     include_package_data=True,
     url="https://github.com/robinhood/airflow_prometheus_exporter",
-    version="1.0.7",
+    version="3.1.0",
     entry_points={
         "airflow.plugins": [
             "AirflowPrometheus = airflow_prometheus_exporter.prometheus_exporter:AirflowPrometheusPlugin"

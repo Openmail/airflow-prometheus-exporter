@@ -2,6 +2,7 @@ include README.md
 include MANIFEST.in
 include setup.cfg
 include setup.py
+include requirements.txt
 recursive-include airflow_prometheus_exporter/ *
 
 recursive-exclude * __pycache__
